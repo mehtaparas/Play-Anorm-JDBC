@@ -2,42 +2,18 @@
 
 # --- !Ups
 
-set ignorecase true;
 
-create table company (
-  id                        bigint not null,
-  name                      varchar(255) not null,
-  constraint pk_company primary key (id))
+create table customers (
+  accountnbr                        bigint not null,
+  siteId                            bigint not null,
+  video                             bigint not null,
+  voice                             bigint not null,
+  data                              bigint not null,
+  constraint pk_account primary key (accountnbr))
 ;
 
-create table computer (
-  id                        bigint not null,
-  name                      varchar(255) not null,
-  introduced                timestamp,
-  discontinued              timestamp,
-  company_id                bigint,
-  constraint pk_computer primary key (id))
-;
-
-create sequence company_seq start with 1000;
-
-create sequence computer_seq start with 1000;
-
-alter table computer add constraint fk_computer_company_1 foreign key (company_id) references company (id) on delete restrict on update restrict;
-create index ix_computer_company_1 on computer (company_id);
-
-
-# --- !Downs
-
-SET REFERENTIAL_INTEGRITY FALSE;
-
-drop table if exists company;
-
-drop table if exists computer;
-
-SET REFERENTIAL_INTEGRITY TRUE;
-
-drop sequence if exists company_seq;
-
-drop sequence if exists computer_seq;
-
+insert into customers (accountnbr, siteId, video, voice, data) values (1, 123, 1, 0, 1);
+insert into customers (accountnbr, siteId, video, voice, data) values (2, 123, 1, 0, 1);
+insert into customers (accountnbr, siteId, video, voice, data) values (3, 345, 1, 1, 1);
+insert into customers (accountnbr, siteId, video, voice, data) values (4, 567, 0, 0, 1);
+insert into customers (accountnbr, siteId, video, voice, data) values (5, 789, 0, 0, 1);
