@@ -8,7 +8,7 @@ import play.api.data._
 import play.api.i18n._
 import play.api.mvc._
 import views._
-import play.api.libs.json.Json
+import play.api.libs.json._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,12 +39,15 @@ class HomeController @Inject()(customerService: CustomerRepository,
     * @param accountnbr Account Number of the customer to search for
     */
   
-  def search(accountnbr: Int) = Action.async { implicit request =>
+  def search(accountnbr: String) = Action.async { implicit request =>
     customerService.findById(accountnbr).map {
       customer => Ok(Json.toJson(customer))
     }
   }
 
+  def save = Action(parse.json) { request: Request[JsValue]  =>
+    Ok((request.body \ "name").as[String])
+  }
 
 }
             

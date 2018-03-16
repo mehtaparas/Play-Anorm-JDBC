@@ -24,7 +24,7 @@ class CustomerRepository @Inject()(implicit ec: DatabaseExecutionContext) {
 
   System.setProperty("java.security.krb5.conf", "/home/apipoc/krb5.conf")
   System.setProperty("java.security.auth.login.config", "/home/parmehta/zookeeper_jaas.conf")
-  System.setProperty("sun.security.krb5.debug", "true")
+  // System.setProperty("sun.security.krb5.debug", "true")
   
   val conf = HBaseConfiguration.create();
   conf.addResource("/home/parmehta/configFiles/hbase-site.xml")
@@ -40,20 +40,20 @@ class CustomerRepository @Inject()(implicit ec: DatabaseExecutionContext) {
   dataSource.setJdbcUrl("jdbc:phoenix:dvtcbddd01.corp.cox.com,dvtcbddd02.corp.cox.com,dvtcbddd101.corp.cox.com:1521/hbase-secure")
   dataSource.setUsername("test")
   dataSource.setPassword("test")
-
+  dataSource.setMaximumPoolSize(15)
 
   /**
    * Parse a Customer from a ResultSet
    */
 
   private val simple = {
-    get[Int]("accountnbr") ~
-      get[Int]("siteId") ~
-      get[Int]("video") ~
-      get[Int]("voice") ~
-      get[Int]("data") map {
-      case accountnbr~siteId~video~voice~data =>
-        Customer(accountnbr, siteId, video, voice, data)
+    get[Int]("siteId") ~
+      get[Int]("accountnbr") ~
+      get[String]("node") ~
+      get[String]("host") ~
+      get[String]("headend") map {
+      case siteId~accountnbr~node~host~headend =>
+        Customer(siteId, accountnbr, node, host, headend)
     }
   }
 
@@ -72,22 +72,30 @@ class CustomerRepository @Inject()(implicit ec: DatabaseExecutionContext) {
   */
 
   
-  def findById(accountnbr: Int): Future[Customer] = Future {
+  def findById(accountnbr: String): Future[Customer] = Future {
 
 	val conn = ugi.doAs(new PrivilegedExceptionAction[Connection] {
 		override def run(): Connection = {dataSource.getConnection}
 		})
+	
+	/** val sqlArgs = accountnbr.split(',')
+	* val site_id = sqlArgs(0)
+	* val account = sqlArgs(1)
+	*
+	* val resultSet = conn.prepareStatement(s"select site_id, account_nbr, status, 1, 1 from UET.CI_ACCNT_EVENTS where SITE_ID = $site_id and ACCOUNT_NBR = $account limit 1").executeQuery()
+	*/
 
-	val resultSet = conn.prepareStatement(s"select * from UET.CUSTOMERS where ACCOUNTNBR = $accountnbr limit 1").executeQuery()
-      
+
+	val resultSet = conn.prepareStatement(s"select * from UET.CI_ACCNT_NODE where SITE_ID = 1 and ACCOUNT_NBR = $accountnbr").executeQuery()
+
 	if(resultSet.next()) {
-		val rs = Customer(resultSet.getInt(1), resultSet.getInt(2), resultSet.getInt(3), resultSet.getInt(4), resultSet.getInt(5))
+		val rs = Customer(resultSet.getInt(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5))
 		conn.close()
 		rs
 	}
 
 	else {
-		val rs = Customer(1,1,1,1,1)
+		val rs = Customer(1,1,"1","1","1")
 		conn.close()
 		rs
 	}
