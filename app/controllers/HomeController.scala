@@ -39,8 +39,8 @@ class HomeController @Inject()(customerService: CustomerRepository,
     * @param accountnbr Account Number of the customer to search for
     */
   
-  def search(accountnbr: String) = Action.async { implicit request =>
-    customerService.findById(accountnbr).map {
+  def search(siteid: Int, accountnbr: Int) = Action.async { implicit request =>
+    customerService.findById(siteid, accountnbr).map {
       customer => Ok(Json.toJson(customer))
     }
   }

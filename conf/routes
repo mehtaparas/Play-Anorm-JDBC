@@ -6,7 +6,7 @@
 GET     /                           controllers.HomeController.index
 
 # Find existing customer
-GET     /customers/:accountnbr              controllers.HomeController.search(accountnbr: String)
+GET     /customers/:siteid/:accountnbr              controllers.HomeController.search(siteid: Int, accountnbr: Int)
 
 # Post request for filters on multiple fields
 POST    /post_test/                          controllers.HomeController.save

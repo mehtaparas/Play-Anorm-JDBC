@@ -11,13 +11,14 @@ import anorm._
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.security.UserGroupInformation
-import org.apache.phoenix.jdbc.PhoenixDriver
+// import org.apache.phoenix.jdbc.PhoenixDriver
 
-import com.zaxxer.hikari.HikariDataSource
+import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 
 import java.security.PrivilegedExceptionAction
 import java.sql._
-
+import java.util.Properties
+import java.io.FileInputStream
 
 @javax.inject.Singleton
 class CustomerRepository @Inject()(implicit ec: DatabaseExecutionContext) {
@@ -35,12 +36,25 @@ class CustomerRepository @Inject()(implicit ec: DatabaseExecutionContext) {
   UserGroupInformation.loginUserFromKeytab("bduet@HDP_DEV.COX.COM", "/home/apipoc/bduet.headless.keytab")
   val ugi = UserGroupInformation.getCurrentUser()
 
-  val dataSource = new HikariDataSource()
-  dataSource.setDriverClassName("org.apache.phoenix.jdbc.PhoenixDriver")
-  dataSource.setJdbcUrl("jdbc:phoenix:dvtcbddd01.corp.cox.com,dvtcbddd02.corp.cox.com,dvtcbddd101.corp.cox.com:1521/hbase-secure")
-  dataSource.setUsername("test")
-  dataSource.setPassword("test")
-  dataSource.setMaximumPoolSize(15)
+  val props = new Properties()
+  props.load(new FileInputStream("/home/parmehta/Play-Anorm-JDBC/conf/hikaricp/phoenix.properties"))
+ 
+  val hikariConfig = new HikariConfig()
+  // hikariConfig.setDriverClassName(props.getProperty("driverClassName"))
+  hikariConfig.setJdbcUrl(props.getProperty("jdbcUrl"))
+  hikariConfig.setUsername(props.getProperty("username"))
+  hikariConfig.setPassword(props.getProperty("password"))
+  hikariConfig.setMaximumPoolSize(props.getProperty("poolSize").toInt)
+  
+  val dataSource = new HikariDataSource(hikariConfig)
+
+  /**
+  * dataSource.setDriverClassName("org.apache.phoenix.jdbc.PhoenixDriver")
+  * dataSource.setJdbcUrl("jdbc:phoenix:dvtcbddd01.corp.cox.com,dvtcbddd02.corp.cox.com,dvtcbddd101.corp.cox.com:1521/hbase-secure")
+  * dataSource.setUsername("test")
+  * dataSource.setPassword("test")
+  * dataSource.setMaximumPoolSize(15)
+  */
 
   /**
    * Parse a Customer from a ResultSet
@@ -72,7 +86,7 @@ class CustomerRepository @Inject()(implicit ec: DatabaseExecutionContext) {
   */
 
   
-  def findById(accountnbr: String): Future[Customer] = Future {
+  def findById(siteid: Int, accountnbr: Int): Future[Customer] = Future {
 
 	val conn = ugi.doAs(new PrivilegedExceptionAction[Connection] {
 		override def run(): Connection = {dataSource.getConnection}
@@ -86,7 +100,7 @@ class CustomerRepository @Inject()(implicit ec: DatabaseExecutionContext) {
 	*/
 
 
-	val resultSet = conn.prepareStatement(s"select * from UET.CI_ACCNT_NODE where SITE_ID = 1 and ACCOUNT_NBR = $accountnbr").executeQuery()
+	val resultSet = conn.prepareStatement(s"select * from UET.CI_ACCNT_NODE where SITE_ID = $siteid and ACCOUNT_NBR = $accountnbr").executeQuery()
 
 	if(resultSet.next()) {
 		val rs = Customer(resultSet.getInt(1), resultSet.getInt(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5))
