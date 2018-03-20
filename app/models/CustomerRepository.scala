@@ -5,9 +5,6 @@ import javax.inject.Inject
 
 import scala.concurrent.Future
 
-import anorm.SqlParser._
-import anorm._
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.security.UserGroupInformation

@@ -14,12 +14,9 @@ resolvers ++= Seq( "maven.org" at "http://repo2.maven.org/maven2",
 
 dependencyOverrides += "com.google.guava" % "guava" % "16.0"
 
-libraryDependencies += guice exclude("com.google.guava", "guava")
+libraryDependencies += guice
 libraryDependencies += jdbc
 
-libraryDependencies += "com.h2database" % "h2" % "1.4.196"
-
-libraryDependencies += "com.typesafe.play" %% "anorm" % "2.5.3"
 libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
 
 libraryDependencies += "org.apache.phoenix" % "phoenix-core" % "4.7.0.2.6.1.0-129"  
